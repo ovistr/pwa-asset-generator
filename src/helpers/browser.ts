@@ -1,10 +1,5 @@
 import puppeteer, { Browser, PuppeteerNodeLaunchOptions } from 'puppeteer-core';
-import { InstalledBrowser } from '@puppeteer/browsers';
-import {
-  launch,
-  LaunchedChrome,
-  Options as ChromeLauncherOptions,
-} from 'chrome-launcher';
+import { launch, LaunchedChrome } from 'chrome-launcher';
 import find from 'find-process';
 import { get } from 'http';
 import preLogger from './logger';
@@ -20,31 +15,15 @@ interface BrowserVersionInfo {
   'Webkit-Version': string;
 }
 
-const isPreferredBrowserRevisionInstalled = (): boolean => {
-  const browser = installer.getBrowserFetcher();
-  return browser !== undefined;
-};
-
-const getLocalRevisionInfo = async (): Promise<
-  InstalledBrowser | undefined
-> => {
-  return isPreferredBrowserRevisionInstalled()
-    ? installer.getBrowserFetcher()
-    : undefined;
-};
+const LAUNCHER_CONNECTION_REFUSED_ERROR_CODE = 'ECONNREFUSED';
+const LAUNCHER_NOT_INSTALLED_ERROR_CODE = 'ERR_LAUNCHER_NOT_INSTALLED';
 
 const getLocalBrowserInstance = async (
   launchArgs: PuppeteerNodeLaunchOptions,
   noSandbox: boolean,
 ): Promise<Browser> => {
-  let revisionInfo: InstalledBrowser;
-  const localRevisionInfo = await getLocalRevisionInfo();
-
-  if (localRevisionInfo) {
-    revisionInfo = localRevisionInfo;
-  } else {
-    revisionInfo = await installer.installPreferredBrowserRevision();
-  }
+  const browser = await installer.getLocalBrowser();
+  const installedBrowser = browser ?? (await installer.installLocalBrowser());
 
   return puppeteer.launch({
     ...launchArgs,
@@ -55,18 +34,16 @@ const getLocalBrowserInstance = async (
         '--disable-setuid-sandbox',
       ],
     }),
-    executablePath: revisionInfo.executablePath,
+    executablePath: installedBrowser.executablePath,
   });
 };
 
 const launchSystemBrowser = (): Promise<LaunchedChrome> => {
-  const launchOptions: ChromeLauncherOptions = {
+  return launch({
     chromeFlags: constants.CHROME_LAUNCH_ARGS,
     logLevel: 'silent',
     maxConnectionRetries: constants.CHROME_LAUNCHER_MAX_CONN_RETRIES,
-  };
-
-  return launch(launchOptions);
+  });
 };
 
 const getLaunchedChromeVersionInfo = (
@@ -75,6 +52,7 @@ const getLaunchedChromeVersionInfo = (
   return new Promise((resolve, reject) => {
     get(`http://localhost:${chrome.port}/json/version`, (res) => {
       let data = '';
+
       res.setEncoding('utf8');
 
       res.on('data', (chunk) => {
@@ -107,8 +85,6 @@ const getBrowserInstance = async (
   chrome: LaunchedChrome | undefined;
   browser: Browser;
 }> => {
-  const LAUNCHER_CONNECTION_REFUSED_ERROR_CODE = 'ECONNREFUSED';
-  const LAUNCHER_NOT_INSTALLED_ERROR_CODE = 'ERR_LAUNCHER_NOT_INSTALLED';
   const logger = preLogger(getBrowserInstance.name);
 
   let browser: Browser;
@@ -119,11 +95,13 @@ const getBrowserInstance = async (
     browser = await getSystemBrowserInstance(chrome, launchArgs);
   } catch (e) {
     const error = e as { port: number; code: string };
+
     // Kill chrome instance manually in case of connection error
     if (error.code === LAUNCHER_CONNECTION_REFUSED_ERROR_CODE) {
       logger.warn(
         `Chrome launcher could not connect to your system browser. Is your port ${error.port} accessible?`,
       );
+
       const prc = await find('port', error.port);
       prc.forEach((pr) => {
         logger.log(

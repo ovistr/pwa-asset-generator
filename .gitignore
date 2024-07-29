@@ -8,6 +8,7 @@ static/*
 !static/blm.png
 temp
 dist
+.browser-cache
 
 # Logs
 logs

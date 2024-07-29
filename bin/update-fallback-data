@@ -30,7 +30,7 @@ const constants = require('../dist/config/constants').default;
       encoding: 'utf8',
     });
     try {
-      await killBrowser(browser, chrome);
+      await killBrowser(chrome);
     } catch (e) {
       // Silently try killing chrome as Chrome launcher might have already killed it
     }

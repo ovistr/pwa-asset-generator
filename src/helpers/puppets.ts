@@ -307,7 +307,7 @@ const generateImages = async (
   );
 
   try {
-    await browserHelper.killBrowser(browser, chrome);
+    await browserHelper.killBrowser(chrome);
   } catch (e) {
     // Silently try killing chrome as Chrome launcher might have already killed it
   }

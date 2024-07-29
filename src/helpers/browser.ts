@@ -1,8 +1,5 @@
-import puppeteer, {
-  Browser,
-  PuppeteerNodeLaunchOptions,
-  BrowserFetcherRevisionInfo,
-} from 'puppeteer-core';
+import puppeteer, { Browser, PuppeteerNodeLaunchOptions } from 'puppeteer-core';
+import { InstalledBrowser } from '@puppeteer/browsers';
 import {
   launch,
   LaunchedChrome,
@@ -24,36 +21,23 @@ interface BrowserVersionInfo {
 }
 
 const isPreferredBrowserRevisionInstalled = (): boolean => {
-  const revisionInfo = installer.getPreferredBrowserRevisionInfo();
-  return revisionInfo.local;
-};
-
-const getLocalRevisionList = (): Promise<string[]> => {
-  return installer.getBrowserFetcher().localRevisions();
+  const browser = installer.getBrowserFetcher();
+  return browser !== undefined;
 };
 
 const getLocalRevisionInfo = async (): Promise<
-  BrowserFetcherRevisionInfo | undefined
+  InstalledBrowser | undefined
 > => {
-  if (isPreferredBrowserRevisionInstalled()) {
-    return installer.getPreferredBrowserRevisionInfo();
-  }
-
-  const localRevisions = await getLocalRevisionList();
-
-  if (localRevisions.length > 0) {
-    const lastRevision = localRevisions.pop() as string;
-    return installer.getBrowserFetcher().revisionInfo(lastRevision);
-  }
-
-  return undefined;
+  return isPreferredBrowserRevisionInstalled()
+    ? installer.getBrowserFetcher()
+    : undefined;
 };
 
 const getLocalBrowserInstance = async (
   launchArgs: PuppeteerNodeLaunchOptions,
   noSandbox: boolean,
 ): Promise<Browser> => {
-  let revisionInfo: BrowserFetcherRevisionInfo;
+  let revisionInfo: InstalledBrowser;
   const localRevisionInfo = await getLocalRevisionInfo();
 
   if (localRevisionInfo) {
@@ -119,7 +103,10 @@ const getSystemBrowserInstance = async (
 const getBrowserInstance = async (
   launchArgs: PuppeteerNodeLaunchOptions,
   noSandbox: boolean,
-): Promise<{ chrome: LaunchedChrome | undefined; browser: Browser }> => {
+): Promise<{
+  chrome: LaunchedChrome | undefined;
+  browser: Browser;
+}> => {
   const LAUNCHER_CONNECTION_REFUSED_ERROR_CODE = 'ECONNREFUSED';
   const LAUNCHER_NOT_INSTALLED_ERROR_CODE = 'ERR_LAUNCHER_NOT_INSTALLED';
   const logger = preLogger(getBrowserInstance.name);
@@ -158,14 +145,10 @@ const getBrowserInstance = async (
 };
 
 export const killBrowser = async (
-  browser: Browser,
   chrome: LaunchedChrome | undefined,
 ): Promise<void> => {
   if (chrome) {
-    await browser.disconnect();
     await chrome.kill();
-  } else {
-    await browser.close();
   }
 };
 

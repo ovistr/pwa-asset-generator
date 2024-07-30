@@ -10,9 +10,13 @@ import {
 } from '@puppeteer/browsers';
 import path from 'path';
 import ProgressBar from 'progress';
+import constants from '../config/constants';
 import preLogger from './logger';
 
-const BROWSER_CACHE_DIR = path.resolve(__dirname, '../../.browser-cache');
+const BROWSER_CACHE_DIR = path.resolve(
+  __dirname,
+  `../../${constants.BROWSER_CACHE_DIR}`,
+);
 
 // Override current environment proxy settings with npm configuration, if any.
 const NPM_HTTPS_PROXY =

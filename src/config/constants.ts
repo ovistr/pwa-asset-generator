@@ -299,5 +299,7 @@ export default {
     /* eslint-enable */
   },
 
+  BROWSER_CACHE_DIR: '.browser-cache',
+
   APPLE_HIG_SPLASH_SCREEN_FALLBACK_DATA,
 };

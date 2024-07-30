@@ -123,10 +123,15 @@ const getBrowserInstance = async (
 };
 
 export const killBrowser = async (
+  browser: Browser,
   chrome: LaunchedChrome | undefined,
 ): Promise<void> => {
   if (chrome) {
-    await chrome.kill();
+    await browser.disconnect();
+    await browser.close();
+    chrome.kill();
+  } else {
+    await browser.close();
   }
 };
 

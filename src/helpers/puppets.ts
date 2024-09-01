@@ -220,6 +220,14 @@ const saveImages = async (
                 value: 'dark',
               },
             ]);
+          } else {
+            // Prevent light mode from being overridden by system settings
+            await page.emulateMediaFeatures([
+              {
+                name: 'prefers-color-scheme',
+                value: 'light',
+              },
+            ]);
           }
           await page.goto(address, { waitUntil: 'networkidle0' });
         } else {

@@ -449,6 +449,7 @@ describe('visually compares generated images with', () => {
 
   interface MatchResult {
     path: string;
+    matchedSnapshot: boolean;
     looksSame: boolean;
   }
 
@@ -546,11 +547,18 @@ describe('visually compares generated images with', () => {
           path.parse(snapshot).name === path.parse(savedImage.path).name,
       );
 
-      const looksSame = doFilesLookSimilar(
-        savedImage.path,
-        path.join(SNAPSHOT_PATH, testSuite, matchedSnapshot as string),
-        testSuite,
-      );
+      if (!matchedSnapshot) {
+        // eslint-disable-next-line no-console
+        console.log('matchedSnapshot failed on', savedImage.path);
+      }
+
+      const looksSame = matchedSnapshot
+        ? doFilesLookSimilar(
+            savedImage.path,
+            path.join(SNAPSHOT_PATH, testSuite, matchedSnapshot as string),
+            testSuite,
+          )
+        : false;
 
       if (!looksSame) {
         // eslint-disable-next-line no-console
@@ -559,6 +567,7 @@ describe('visually compares generated images with', () => {
 
       return {
         path: savedImage.path,
+        matchedSnapshot: !!matchedSnapshot,
         looksSame,
       };
     });
@@ -580,6 +589,7 @@ describe('visually compares generated images with', () => {
 
       const matchResult = await getAllSnapshotsMatchStatus(result, testSuite);
       matchResult.forEach((mr: MatchResult) => {
+        expect(mr.matchedSnapshot).toBeTruthy();
         expect(mr.looksSame).toBeTruthy();
       });
     });
@@ -598,6 +608,7 @@ describe('visually compares generated images with', () => {
 
       const matchResult = await getAllSnapshotsMatchStatus(result, testSuite);
       matchResult.forEach((mr: MatchResult) => {
+        expect(mr.matchedSnapshot).toBeTruthy();
         expect(mr.looksSame).toBeTruthy();
       });
     });
@@ -616,6 +627,7 @@ describe('visually compares generated images with', () => {
 
         const matchResult = await getAllSnapshotsMatchStatus(result, testSuite);
         matchResult.forEach((mr: MatchResult) => {
+          expect(mr.matchedSnapshot).toBeTruthy();
           expect(mr.looksSame).toBeTruthy();
         });
       });
@@ -634,6 +646,7 @@ describe('visually compares generated images with', () => {
 
         const matchResult = await getAllSnapshotsMatchStatus(result, testSuite);
         matchResult.forEach((mr: MatchResult) => {
+          expect(mr.matchedSnapshot).toBeTruthy();
           expect(mr.looksSame).toBeTruthy();
         });
       });
@@ -655,6 +668,7 @@ describe('visually compares generated images with', () => {
 
       const matchResult = await getAllSnapshotsMatchStatus(result, testSuite);
       matchResult.forEach((mr: MatchResult) => {
+        expect(mr.matchedSnapshot).toBeTruthy();
         expect(mr.looksSame).toBeTruthy();
       });
     });
@@ -678,6 +692,7 @@ describe('visually compares generated images with', () => {
 
       const matchResult = await getAllSnapshotsMatchStatus(result, testSuite);
       matchResult.forEach((mr: MatchResult) => {
+        expect(mr.matchedSnapshot).toBeTruthy();
         expect(mr.looksSame).toBeTruthy();
       });
     });
@@ -696,6 +711,7 @@ describe('visually compares generated images with', () => {
 
       const matchResult = await getAllSnapshotsMatchStatus(result, testSuite);
       matchResult.forEach((mr: MatchResult) => {
+        expect(mr.matchedSnapshot).toBeTruthy();
         expect(mr.looksSame).toBeTruthy();
       });
     });
@@ -714,6 +730,7 @@ describe('visually compares generated images with', () => {
 
         const matchResult = await getAllSnapshotsMatchStatus(result, testSuite);
         matchResult.forEach((mr: MatchResult) => {
+          expect(mr.matchedSnapshot).toBeTruthy();
           expect(mr.looksSame).toBeTruthy();
         });
       });
@@ -732,6 +749,7 @@ describe('visually compares generated images with', () => {
 
         const matchResult = await getAllSnapshotsMatchStatus(result, testSuite);
         matchResult.forEach((mr: MatchResult) => {
+          expect(mr.matchedSnapshot).toBeTruthy();
           expect(mr.looksSame).toBeTruthy();
         });
       });
